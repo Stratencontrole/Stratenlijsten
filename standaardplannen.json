@@ -1,0 +1,80 @@
+{
+  "cities": [
+    {
+      "id": "standaard-edegem",
+      "name": "Edegem"
+    },
+    {
+      "id": "standaard-rumst",
+      "name": "Rumst"
+    }
+  ],
+  "plans": [
+    {
+      "id": "standaard-edegem-gft-do-3b",
+      "cityId": "standaard-edegem",
+      "name": "GFT DO 3B",
+      "streets": [
+        "Biezenwei",
+        "Boniverlei",
+        "Buizegemlei",
+        "Dr. Frans Hemeryckxlaan",
+        "Elsbos",
+        "Ernest Jouretlaan",
+        "Grote Dries",
+        "Hofgracht",
+        "Jan Verbertlei",
+        "Jonkersaard",
+        "Keltenheuvel",
+        "Klaverenaard",
+        "Opstal",
+        "Oud-Kerkhoflaan",
+        "Pastoor Wouterstraat",
+        "Putlaan",
+        "Romeinse Put",
+        "Rotenaard",
+        "Scheibeek",
+        "Sint-Goriksplein",
+        "Tweebunder"
+      ]
+    },
+    {
+      "id": "standaard-rumst-hv-vr-1",
+      "cityId": "standaard-rumst",
+      "name": "HV VR 1",
+      "streets": [
+        "Antwerpsesteenweg",
+        "Balhoevestraat",
+        "Blauwhoevestraat",
+        "Bussestraat",
+        "Doornlaarlei",
+        "Eekhovenweg",
+        "Ekkergatstraat",
+        "Guido Gezellestraat",
+        "Herderstraat",
+        "Hof ten Eikenlaan",
+        "Hoge Vosbergstraat",
+        "Hoveniersstraat",
+        "Kapellenlei",
+        "Kerkhofstraat",
+        "Kerkstraat",
+        "Kromhoutstraat",
+        "Kruislei",
+        "Lage Vosbergstraat",
+        "Lazarusstraat",
+        "Louis Paul Boonstraat",
+        "Maalderijstraat",
+        "Mechelsesteenweg",
+        "Morenhoekstraat",
+        "Netestraat",
+        "Pastoor Slegersstraat",
+        "Potaardestraat",
+        "Priester Daensstraat",
+        "Slijkenhoefstraat",
+        "Tiburstraat",
+        "Varenstraat",
+        "Weivelden"
+      ]
+    }
+  ]
+}
