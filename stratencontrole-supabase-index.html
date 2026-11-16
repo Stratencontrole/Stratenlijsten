@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AE Stratencontrole</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--green:#80ba27;--red:#c83b42;--ink:#173d53;--muted:#667b88;--line:#dce7eb;--bg:#f3f7f8;--blue:#194b64}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:15px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);line-height:1.5}
+header{background:#fff;color:var(--ink);padding:0;box-shadow:0 2px 15px #173d5310;border-bottom:4px solid var(--green)}
+.header-inner{max-width:1240px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:17px 24px}
+.brand{display:flex;align-items:center;gap:24px}.brand img{width:170px;height:auto;display:block}.brand-divider{width:1px;height:49px;background:#d9e4e8}
+header h1{margin:0 0 2px;font-size:24px;font-weight:750;letter-spacing:-.6px}header p{margin:0;color:var(--muted);font-size:13px}.header-tag{color:var(--blue);background:#edf5e6;border:1px solid #d9e9c6;padding:7px 13px;border-radius:30px;font-size:12px;font-weight:750;white-space:nowrap}
+main{max-width:1240px;margin:28px auto;padding:0 24px 36px}.page-intro{margin:0 0 20px}.page-intro h2{font-size:21px;margin:0 0 3px;letter-spacing:-.35px}.page-intro p{color:var(--muted);margin:0;font-size:14px}
+.uploads,.stats,.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:21px;margin-bottom:18px;box-shadow:0 3px 18px #173d5309}
+.uploads{display:grid;grid-template-columns:1fr 1fr;gap:17px;border-top:3px solid var(--green)}.upload label{display:block;font-weight:700;margin-bottom:9px;font-size:13px}.upload input{width:100%;padding:13px;border:1.5px dashed #b9cdd5;border-radius:9px;background:#f8fbfc;color:var(--ink)}.upload input::file-selector-button{background:#e9f3e1;border:0;border-radius:6px;padding:8px 12px;color:#285c18;font-weight:700;cursor:pointer;margin-right:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;background:transparent;border:0;box-shadow:none;padding:0}.stat{padding:20px 19px;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 3px 18px #173d5309;border-left:4px solid #1b536e}.stat:nth-child(2){border-left-color:var(--green)}.stat:nth-child(3){border-left-color:var(--red)}.stat:nth-child(4){border-left-color:#3c8eab}.stat strong{font-size:31px;display:block;font-weight:800;letter-spacing:-1px;line-height:1.2}.stat small{color:var(--muted);display:block;margin-top:8px;font-size:12px;font-weight:650}.green{color:#5c9b1b}.red{color:var(--red)}.bar{height:8px;background:#e5edef;border-radius:20px;overflow:hidden;margin-top:14px}.bar span{height:100%;display:block;background:var(--green);transition:width .35s}
+.layout{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}.panel h2{font-size:17px;margin:0 0 16px;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}.panel h2:before{content:'';display:block;width:5px;height:22px;border-radius:4px;background:var(--green)}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px}
+input[type=search],select,button{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:white}input[type=search]:focus,input[type=file]:focus-visible{outline:2px solid #83bd31;outline-offset:2px}button{cursor:pointer;background:var(--blue);color:white;border:0;font-weight:650;transition:background .15s,transform .15s}button:hover{background:#0e3449;transform:translateY(-1px)}button.secondary{background:#e8eef5;color:var(--blue)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 9px;border-bottom:1px solid #e8eef0}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:#f8fbfc;position:sticky;top:0}td{font-size:13px}tbody tr:hover{background:#f8fbfc}
+.pill{border-radius:30px;padding:5px 9px;font-size:11px;font-weight:750;white-space:nowrap}.pill.yes{background:#e6f5d8;color:#386e1a}.pill.no{background:#fff0f0;color:#a52e37}.pill.review{background:#fef3c7;color:#92400e}
+#map{height:480px;border-radius:10px;background:#e5e7eb;border:1px solid var(--line)}.map-status{display:none;margin:8px 0;padding:9px 11px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:13px}.note{color:var(--muted);font-size:12.5px;line-height:1.65}.scroll{max-height:480px;overflow:auto}.footer{padding:12px 0 0;text-align:center;font-size:12px;color:#80939d}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.header-tag{display:none}}@media(max-width:760px){.uploads{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.header-inner{padding:14px 17px}.brand{gap:13px}.brand img{width:110px}.brand-divider{height:38px}header h1{font-size:18px}header p{font-size:11px}main{padding:0 14px;margin:20px auto}.uploads,.panel{padding:15px}.stat{padding:14px}.stat strong{font-size:25px}.toolbar button{width:100%}}
+@media(max-width:400px){.brand img{width:95px}.brand{gap:9px}header h1{font-size:16px}}
+/* Vernieuwde ILSE-huisstijl */
+:root{--green:#8ec316;--ink:#083c42;--blue:#075a5a;--muted:#647b82;--bg:#f5f9f8;--line:#dbe8e6}
+header{border-bottom:0;background:linear-gradient(110deg,#fff 0%,#fff 64%,#e8f5dd 85%,#08706a 100%);box-shadow:0 7px 30px #0b5d5812}
+.header-inner{padding-top:23px;padding-bottom:23px}.brand{gap:20px}.brand-divider{background:#cfe2db}.header-tag{background:#e7f4e3;color:#075a5a;border-color:#d3e9d5}
+.ilse-mark{display:flex;align-items:center;gap:9px;white-space:nowrap}.ilse-leaf{display:grid;place-items:center;width:49px;height:49px;border-radius:55% 10% 55% 10%;transform:rotate(-18deg);background:linear-gradient(145deg,#a2d719,#006d64);color:white;font-size:20px}.ilse-word{font-size:35px;letter-spacing:-2px;font-weight:850;color:#064e50}
+main{margin-top:35px}.page-intro{padding:12px 0 19px}.page-intro h2{font-size:clamp(24px,3vw,34px);letter-spacing:-.9px}.page-intro p{font-size:15px}.panel,.uploads,.stat{border-radius:18px;box-shadow:0 10px 32px #0d4b4b0b;border-color:#dce9e6}.panel,.uploads{padding:25px}.panel h2:before{background:linear-gradient(#a5d71a,#08716b)}button{background:linear-gradient(120deg,#075e60,#087b71);border-radius:10px}button:hover{background:#064a4e}.stat{border-left-color:#0b6969}.stat:nth-child(2){border-left-color:#8ec316}.bar span{background:linear-gradient(90deg,#77b91a,#b0d831)}.uploads{border-top-color:#8ec316}a:focus-visible{outline:3px solid #8ec316;outline-offset:3px}
+@media(max-width:760px){.ilse-word{font-size:26px}.ilse-leaf{width:36px;height:36px}.panel,.uploads{padding:17px}}
+</style></head><body>
+<header><div class="header-inner"><div class="brand"><span class="ilse-mark" aria-label="ILSE"><span class="ilse-leaf">◆</span><span class="ilse-word">ILSE</span></span><span class="brand-divider" aria-hidden="true"></span><div><h1>Stratencontrole</h1><p>Track &amp; Trace · Controle &amp; rapportage</p></div></div><span class="header-tag">ILSE · Stratencontrole</span></div></header>
+<main><div style="margin-bottom:16px"><a href="./beheer-supabase.html" style="display:inline-block;background:#194b64;color:white;text-decoration:none;border-radius:8px;padding:11px 16px;font-weight:700">⚙ Beheer gemeenten en stratenlijsten</a></div><div class="page-intro"><h2>Overzicht stratencontrole</h2><p>Vergelijk de officiële stratenlijst met het Track &amp; Trace-rapport en bekijk de GPS-trajecten op kaart.</p></div>
+<section class="panel" id="supabaseLogin" style="border-top:3px solid #80ba27"><h2>Stratenlijsten uit Supabase</h2><p class="note">Meld je aan met hetzelfde account als op je beheerderspagina. Je Track &amp; Trace-bestand blijft lokaal in je browser.</p><div class="toolbar"><input type="email" id="sbEmail" placeholder="E-mailadres" autocomplete="username" style="flex:1;min-width:180px"><input type="password" id="sbPassword" placeholder="Wachtwoord" autocomplete="current-password" style="flex:1;min-width:180px"><button type="button" id="sbLogin">Aanmelden</button><button type="button" id="sbLogout" class="secondary" hidden>Afmelden</button><button type="button" id="sbRefresh" class="secondary" hidden>Plannen vernieuwen</button></div><p class="note" id="sbStatus" role="status">Nog niet verbonden.</p></section><section class="panel" style="border-top:3px solid #80ba27"><h2>Selecteer de plannen</h2><p class="note">Vink één of meerdere plannen aan, bijvoorbeeld alle plannen van dezelfde gemeente. De controle toont de unieke straten samen en de ontbrekende straten per plan.</p><div id="planChoices" style="display:grid;gap:12px;margin:14px 0"></div><div class="toolbar"><button type="button" id="loadSavedPlan">Controleer geselecteerde plannen</button><button type="button" id="clearPlanSelection" style="background:#e7eef0;color:#194b64">Wis selectie</button></div><p id="selectedPlanStatus" class="note" aria-live="polite"></p><div id="planBreakdown" style="margin-top:12px"></div></section><section class="uploads" style="display:block"><div class="upload"><label for="trackFile">Track &amp; Trace-rapport uploaden (TXT/CSV)</label><p class="note">Track &amp; Trace-bestanden worden alleen hier geüpload, niet aangevinkt bij de stratenplannen.</p><input id="trackFile" type="file" accept=".txt,.csv"></div><p class="note">Vink bovenaan één of meerdere stratenplannen aan en upload hier je Track &amp; Trace-bestand. De verwerking gebeurt lokaal in de browser.</p></section>
+<section class="stats">
+ <div class="stat"><strong id="total">0</strong><small>Straten op lijst</small></div>
+ <div class="stat"><strong class="green" id="done">0</strong><small>Teruggevonden in rapport</small></div>
+ <div class="stat"><strong class="red" id="missing">0</strong><small>Niet teruggevonden</small></div>
+ <div class="stat"><strong id="percent">0%</strong><small>Naamsmatch</small><div class="bar"><span id="progress" style="width:0%"></span></div></div>
+</section>
+<div class="layout">
+<section class="panel"><h2>Niet teruggevonden straten</h2><div class="toolbar">
+<input id="search" type="search" placeholder="Zoek ontbrekende straat..." style="flex:1;min-width:130px">
+<button id="export">Download ontbrekende straten (CSV)</button></div>
+<div class="scroll"><table><thead><tr><th>Straat uit de stratenlijst</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section class="panel"><h2>GPS-traject</h2><div id="map"></div><div id="mapStatus" class="map-status" role="status"></div><p class="note">Blauwe lijn = GPS-traject. De GPS-punten tonen de geregistreerde posities. Via het lagenmenu rechtsboven kun je wisselen tussen de Esri-stratenkaart en de topografische kaart. Een GPS-passage in de buurt is op zichzelf geen bewijs dat alle adressen in die straat bediend zijn.</p></section>
+</div>
+<section class="panel"><h2>Hoe wordt de status bepaald?</h2><p class="note">De app controleert uitsluitend de straten uit de geselecteerde stratenlijsten in Supabase. Een straat telt als teruggevonden wanneer de genormaliseerde straatnaam voorkomt in het adresveld van het Track & Trace-rapport. Straten die wel in Track & Trace staan maar niet in de officiële stratenlijst, worden genegeerd. Alleen straten uit de geselecteerde lijst die niet in het rapport worden teruggevonden, verschijnen hieronder. “Niet teruggevonden” is niet automatisch een bewijs dat de straat niet gereden werd.</p><p id="summary" class="note"></p></section>
+<div class="footer">ILSE · Stratencontrole | Lokale verwerking van bestanden</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const initial={"streets":[],"records":[]};
+let streets=initial.streets, records=initial.records, results=[];
+const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function analyze(){
+ const unique=[...new Set(streets.map(s=>s.trim()).filter(Boolean))];
+ results=unique.map(street=>{
+  const key=norm(street);
+  const hits=records.filter(r=>norm((r.address||'').split(',')[0])===key);
+  const times=hits.map(h=>h.time).filter(Boolean).sort();
+  return {street,count:hits.length,yes:hits.length>0,first:times[0]||'',last:times[times.length-1]||''};
+ });
+ render();
+}
+function render(){
+ const yes=results.filter(x=>x.yes).length, no=results.length-yes, pct=results.length?Math.round(yes/results.length*100):0;
+ document.getElementById('total').textContent=results.length;document.getElementById('done').textContent=yes;document.getElementById('missing').textContent=no;document.getElementById('percent').textContent=pct+'%';document.getElementById('progress').style.width=pct+'%';
+ const q=norm(document.getElementById('search').value);
+ const shown=results.filter(x=>!x.yes&&(!q||norm(x.street).includes(q)));
+ document.getElementById('rows').innerHTML=shown.map(x=>`<tr><td>${esc(x.street)}</td><td><span class="pill no">Niet teruggevonden</span></td></tr>`).join('')||'<tr><td colspan="2">Geen ontbrekende straten gevonden</td></tr>'; 
+ renderPlanBreakdown();
+ document.getElementById('summary').textContent=`Rapport bevat ${records.length} GPS-registraties. ${yes} van de ${results.length} unieke straten komen als straatnaam terug in het adresveld.`;
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('trackFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const text=await file.text();records=text.split(/\r?\n/).filter(Boolean).map(line=>{const p=line.split(';');return {id:p[0],lat:p[2],lon:p[3],city:p[5],address:p[6],weight:p[7],time:p[8]};}).filter(r=>r.address!==undefined);analyze();drawMap();});
+document.getElementById('export').addEventListener('click',()=>{const missing=results.filter(x=>!x.yes);const csv=['Niet teruggevonden straat',...missing.map(x=>'"'+String(x.street).replace(/"/g,'""')+'"')].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='niet-teruggevonden-straten.csv';a.click();URL.revokeObjectURL(a.href);});
+let map, baseLayers, activeBaseLayer;
+function drawMap(){
+ if(!window.L)return;
+ if(!map){
+  map=L.map('map').setView([51.15,4.45],13);
+
+  // Esri ArcGIS kaartlagen: geen CARTO API-sleutel nodig voor deze publieke kaartservices.
+  const esriStreet=L.tileLayer(
+   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+   {attribution:'Tiles © Esri — Sources: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community',maxZoom:19}
+  );
+  const esriTopo=L.tileLayer(
+   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+   {attribution:'Tiles © Esri — Sources: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community',maxZoom:19}
+  );
+
+  baseLayers={'Esri stratenkaart':esriStreet,'Esri topografisch':esriTopo};
+  activeBaseLayer=esriStreet.addTo(map);
+  L.control.layers(baseLayers,null,{collapsed:true}).addTo(map);
+
+  let tileErrors=0, tileLoads=0;
+  [esriStreet,esriTopo].forEach(layer=>{
+   layer.on('tileload',()=>{tileLoads++;if(tileLoads>0){const s=document.getElementById('mapStatus');s.style.display='none';}});
+   layer.on('tileerror',()=>{
+    tileErrors++;
+    if(tileErrors>=3 && tileLoads===0){
+     const s=document.getElementById('mapStatus');
+     s.style.display='block';
+     s.textContent='De kaartserver reageert niet. Controleer je internetverbinding of vraag de IT-dienst of server.arcgisonline.com wordt geblokkeerd door de firewall. De GPS-routegegevens blijven wel ingelezen.';
+    }
+   });
+  });
+  esriStreet.on('tileerror',()=>{
+   if(activeBaseLayer===esriStreet){
+    // Niet automatisch blijven wisselen bij één ontbrekende tegel; de gebruiker kan via de lagenknop wisselen.
+   }
+  });
+  map.on('baselayerchange',e=>{activeBaseLayer=e.layer;tileErrors=0;tileLoads=0;const s=document.getElementById('mapStatus');s.style.display='none';});
+ }
+ if(window.trackLayer)map.removeLayer(window.trackLayer);
+ const pts=records.map(r=>[parseFloat(r.lat),parseFloat(r.lon)]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1])&&p[0]>0);
+ if(pts.length){
+  window.trackLayer=L.polyline(pts,{color:'#2563eb',weight:4,opacity:.8}).addTo(map);
+  map.fitBounds(window.trackLayer.getBounds(),{padding:[15,15]});
+ }
+}
+ const SUPABASE_URL='https://kddwqwojhxyshfykqvua.supabase.co';
+ const SUPABASE_KEY='sb_publishable_OEEL_cwnBoVXqXpBjm4_Jg_zIZHYbRa';
+ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ let standaardPlannen=[],activePlans=[];
+ const sbStatus=(msg)=>document.getElementById('sbStatus').textContent=msg;
+ function getAvailablePlans(){return standaardPlannen;}
+ async function readAll(table){const out=[];for(let offset=0;;offset+=1000){const {data,error}=await sb.from(table).select('*').range(offset,offset+999);if(error)throw error;out.push(...data);if(data.length<1000)break;}return out;}
+ async function refreshStandardPlans(){
+   try{
+     sbStatus('Gemeenten, plannen en straten ophalen…');
+     const [cities,plans,streetRows]=await Promise.all([readAll('gemeenten'),readAll('plannen'),readAll('straten')]);
+     const cityById=new Map(cities.map(c=>[c.id,c.naam]));
+     const streetByPlan=new Map();
+     for(const r of streetRows){if(!streetByPlan.has(r.plan_id))streetByPlan.set(r.plan_id,[]);streetByPlan.get(r.plan_id).push(r.naam);}
+     standaardPlannen=plans.map(p=>({id:p.id,selectionId:'supabase:'+p.id,cityName:cityById.get(p.gemeente_id)||'Onbekend',name:p.naam,streets:streetByPlan.get(p.id)||[]})).sort((a,b)=>(a.cityName+' '+a.name).localeCompare(b.cityName+' '+b.name,'nl'));
+     refreshSavedPlans();
+     sbStatus(`${cities.length} gemeente(n), ${plans.length} ophaalplannen en ${streetRows.length} straten geladen uit Supabase.`);
+   }catch(e){console.error(e);sbStatus('Ophalen mislukt: '+e.message+' — controleer je aanmelding en leesrechten.');}
+ }
+ async function updateLogin(){const {data:{session}}=await sb.auth.getSession();const logged=!!session;document.getElementById('sbLogin').hidden=logged;document.getElementById('sbLogout').hidden=!logged;document.getElementById('sbRefresh').hidden=!logged;document.getElementById('sbEmail').hidden=logged;document.getElementById('sbPassword').hidden=logged;if(logged)await refreshStandardPlans();else{standaardPlannen=[];activePlans=[];streets=[];refreshSavedPlans();analyze();sbStatus('Meld je aan om de centrale stratenlijsten te bekijken.');}}
+ document.getElementById('sbLogin').addEventListener('click',async()=>{const email=document.getElementById('sbEmail').value.trim(),password=document.getElementById('sbPassword').value;sbStatus('Aanmelden…');const {error}=await sb.auth.signInWithPassword({email,password});document.getElementById('sbPassword').value='';if(error){sbStatus('Aanmelden mislukt: '+error.message);return;}await updateLogin();});
+ document.getElementById('sbLogout').addEventListener('click',async()=>{await sb.auth.signOut();await updateLogin();});
+ document.getElementById('sbRefresh').addEventListener('click',refreshStandardPlans);
+ function refreshSavedPlans(){const el=document.getElementById('planChoices');const checked=new Set([...el.querySelectorAll('input:checked')].map(x=>x.value));const plans=getAvailablePlans();const cities=[...new Set(plans.map(p=>p.cityName))].sort((a,b)=>a.localeCompare(b,'nl'));el.replaceChildren();cities.forEach(city=>{const group=document.createElement('div');group.style.cssText='padding:14px;border:1px solid #d9e7e8;border-radius:12px;background:#f8fbfa';const heading=document.createElement('strong');heading.textContent=city;heading.style.cssText='display:block;margin-bottom:8px;color:#194b64';group.append(heading);plans.filter(p=>p.cityName===city).forEach(p=>{const label=document.createElement('label');label.style.cssText='display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer';const input=document.createElement('input');input.type='checkbox';input.value=p.selectionId;input.checked=checked.has(p.selectionId);input.style.cssText='width:18px;height:18px;accent-color:#27856b';const span=document.createElement('span');span.textContent=p.name+' ('+(p.streets||[]).length+' straten)';label.append(input,span);group.append(label)});el.append(group)})}
+document.getElementById('loadSavedPlan').addEventListener('click',()=>{const ids=[...document.querySelectorAll('#planChoices input:checked')].map(x=>x.value);activePlans=getAvailablePlans().filter(p=>ids.includes(p.selectionId));if(!activePlans.length){alert('Vink eerst minstens één ophaalplan aan.');return}streets=[...new Map(activePlans.flatMap(p=>(p.streets||[]).map(st=>[norm(String(st)),String(st)])).filter(([key])=>key)).values()];document.getElementById('selectedPlanStatus').textContent=activePlans.length+' plan(nen) geselecteerd: '+activePlans.map(p=>p.cityName+' · '+p.name).join(', ')+'. '+streets.length+' unieke straten in totaal.';analyze()});
+document.getElementById('clearPlanSelection').addEventListener('click',()=>{document.querySelectorAll('#planChoices input').forEach(x=>x.checked=false);activePlans=[];document.getElementById('selectedPlanStatus').textContent='Selectie gewist.';document.getElementById('planBreakdown').replaceChildren()});
+function renderPlanBreakdown(){const el=document.getElementById('planBreakdown');el.replaceChildren();if(!activePlans.length)return;const title=document.createElement('h3');title.textContent='Openstaande straten per ophaalplan';title.style.margin='12px 0';el.append(title);activePlans.forEach(p=>{const missing=[...new Set((p.streets||[]).map(String).filter(st=>!records.some(r=>norm((r.address||'').split(',')[0])===norm(st))))];const details=document.createElement('details');details.style.cssText='margin:8px 0;padding:12px;border:1px solid #d9e7e8;border-radius:10px';const summary=document.createElement('summary');summary.style.cssText='cursor:pointer;font-weight:700';summary.textContent=p.cityName+' · '+p.name+' — '+missing.length+' van '+new Set((p.streets||[]).map(st=>norm(String(st)))).size+' straten open';details.append(summary);const body=document.createElement('p');body.style.whiteSpace='pre-line';body.textContent=missing.length?missing.join('\n'):'Alle straten teruggevonden';details.append(body);el.append(details)})}
+refreshSavedPlans();updateLogin();
+analyze();drawMap();
+</script></body></html>
